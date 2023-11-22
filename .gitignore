@@ -1,3 +1,7 @@
 *.pyc
 *.pdf
 output/
+.DS_Store
+trained*
+*.ipynb
+weak_learner
