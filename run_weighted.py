@@ -3,16 +3,33 @@ import datasets
 import numpy as np
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
     AutoModelForQuestionAnswering, Trainer, TrainingArguments, HfArgumentParser
-from helpers import prepare_dataset_nli, prepare_train_dataset_qa, \
+from helpers import prepare_train_dataset_qa, \
     prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy
 import os
 import json
 from torch.nn import functional as F
+import torch
 from get_scores_func import get_scores#, add_score
 import time
+import inspect
 
 
 NUM_PREPROCESSING_WORKERS = 2
+def prepare_dataset_nli(examples, tokenizer, max_seq_length=None):
+    # return
+    max_seq_length = tokenizer.model_max_length if max_seq_length is None else max_seq_length
+
+    tokenized_examples = tokenizer(
+        examples['premise'],
+        examples['hypothesis'],
+        truncation=True,
+        max_length=max_seq_length,
+        padding='max_length'
+    )
+
+    tokenized_examples['label'] = examples['label']
+    tokenized_examples['pred_scores'] = examples['pred_scores']
+    return tokenized_examples
 
 
 class ReweightByTeacherAnnealedTrainer(Trainer):
@@ -23,12 +40,16 @@ class ReweightByTeacherAnnealedTrainer(Trainer):
 
     def compute_loss(self, model, inputs, return_outputs=False):
         # Forward pass
+        teacher_probs = inputs.get('pred_scores')  # Make sure to include this in your dataset
+        inputs.pop('pred_scores')
         outputs = model(**inputs)
         logits = outputs.get('logits')  # Model predictions
 
         # Extract labels and teacher_probs from inputs
         labels = inputs.get('labels')
-        teacher_probs = inputs.get('pred_scores')  # Make sure to include this in your dataset
+        # print(teacher_probs)
+        # print(inputs)
+        # time.sleep(10)
 
         # Compute custom loss
         loss = self.loss_func.forward(None, logits, None, teacher_probs, labels)
@@ -36,6 +57,8 @@ class ReweightByTeacherAnnealedTrainer(Trainer):
 
 
 def main():
+    # print(inspect.getsource(Trainer))
+    # time.sleep(100)
     argp = HfArgumentParser(TrainingArguments)
     # The HfArgumentParser object collects command-line arguments into an object (and provides default values for unspecified arguments).
     # In particular, TrainingArguments has several keys that you'll need/want to specify (when you call run.py from the command line):
@@ -54,6 +77,7 @@ def main():
     #     Where to put the trained model checkpoint(s) and any eval predictions.
     #     *This argument is required*.
 
+    # argp.add_argument('--remove_unused_columns')
     argp.add_argument('--model', type=str,
                       default='google/electra-small-discriminator',
                       help="""This argument specifies the base model to fine-tune.
@@ -73,7 +97,12 @@ def main():
     argp.add_argument('--max_eval_samples', type=int, default=None,
                       help='Limit the number of examples to evaluate on.')
 
+    argp.remove_unused_columns = False
     training_args, args = argp.parse_args_into_dataclasses()
+    args.remove_unused_columns = False
+    training_args.remove_unused_columns = False
+    # print(training_args)
+    # time.sleep(10)
 
     # Dataset selection
     # IMPORTANT: this code path allows you to load custom datasets different from the standard SQuAD or SNLI ones.
@@ -113,6 +142,8 @@ def main():
         prepare_train_dataset = lambda exs: prepare_train_dataset_qa(exs, tokenizer)
         prepare_eval_dataset = lambda exs: prepare_validation_dataset_qa(exs, tokenizer)
     elif args.task == 'nli':
+        print("this is happening")
+        # print(inspect.getsource(prepare_dataset_nli))
         prepare_train_dataset = prepare_eval_dataset = \
             lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
         # prepare_eval_dataset = prepare_dataset_nli
@@ -131,6 +162,7 @@ def main():
     if training_args.do_train:
         train_dataset = dataset['train']
         pred_scores = get_scores("weak_learner_eval_predictions.jsonl", True)
+        # print(len(pred_scores))
         train_dataset = train_dataset.add_column("pred_scores", pred_scores)
         # scores_iter = iter(pred_scores)
         # def add_score(example):
@@ -146,6 +178,9 @@ def main():
             num_proc=NUM_PREPROCESSING_WORKERS,
             remove_columns=train_dataset.column_names
         )
+        # print("featu")
+        # print(train_dataset_featurized[0])
+        time.sleep(1)
     if training_args.do_eval:
         eval_dataset = dataset[eval_split]
         if args.max_eval_samples:
@@ -184,6 +219,9 @@ def main():
         return compute_metrics(eval_preds)
 
     # Initialize the Trainer object with the specified arguments and the model and dataset we loaded above
+    # training_args.remove_unused_columns = False
+    # TrainingArguments.remove_unused_columns = False
+
     trainer = trainer_class(
         model=model,
         args=training_args,
@@ -191,6 +229,7 @@ def main():
         eval_dataset=eval_dataset_featurized,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics_and_store_predictions
+        # remove_unused_columns=False
     )
     # Train and/or evaluate
     if training_args.do_train:

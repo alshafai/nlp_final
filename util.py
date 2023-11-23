@@ -81,7 +81,10 @@ class ReweightByTeacherAnnealed(ClfDistillLossFunction):
     def forward(self, hidden, logits, bias, teacher_probs, labels):
         logits = logits.float()  # In case we were in fp16 mode
         loss = F.cross_entropy(logits, labels, reduction='none')
-        one_hot_labels = torch.eye(logits.size(1)).cuda()[labels]
+        if torch.cuda.is_available():
+            one_hot_labels = torch.eye(logits.size(1)).cuda()[labels]
+        else:
+            one_hot_labels = torch.eye(logits.size(1))[labels]
         teacher_probs = torch.tensor(teacher_probs)
 
         weights = 1 - (one_hot_labels * teacher_probs).sum(1)
