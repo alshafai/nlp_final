@@ -1,4 +1,4 @@
-from util import ReweightByTeacherAnnealed
+from util import ReweightByTeacherAnnealed, ReweightByTeacher
 import datasets
 import numpy as np
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
@@ -36,7 +36,7 @@ class ReweightByTeacherAnnealedTrainer(Trainer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Initialize your custom loss function
-        self.loss_func = ReweightByTeacherAnnealed(total_steps=12876, num_epochs=3)
+        self.loss_func = ReweightByTeacher()
 
     def compute_loss(self, model, inputs, return_outputs=False):
         # Forward pass
@@ -47,9 +47,6 @@ class ReweightByTeacherAnnealedTrainer(Trainer):
 
         # Extract labels and teacher_probs from inputs
         labels = inputs.get('labels')
-        # print(teacher_probs)
-        # print(inputs)
-        # time.sleep(10)
 
         # Compute custom loss
         loss = self.loss_func.forward(None, logits, None, teacher_probs, labels)
@@ -142,8 +139,6 @@ def main():
         prepare_train_dataset = lambda exs: prepare_train_dataset_qa(exs, tokenizer)
         prepare_eval_dataset = lambda exs: prepare_validation_dataset_qa(exs, tokenizer)
     elif args.task == 'nli':
-        print("this is happening")
-        # print(inspect.getsource(prepare_dataset_nli))
         prepare_train_dataset = prepare_eval_dataset = \
             lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
         # prepare_eval_dataset = prepare_dataset_nli

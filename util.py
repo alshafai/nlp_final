@@ -85,7 +85,7 @@ class ReweightByTeacherAnnealed(ClfDistillLossFunction):
             one_hot_labels = torch.eye(logits.size(1)).cuda()[labels]
         else:
             one_hot_labels = torch.eye(logits.size(1))[labels]
-        teacher_probs = torch.tensor(teacher_probs)
+        teacher_probs = teacher_probs
 
         weights = 1 - (one_hot_labels * teacher_probs).sum(1)
 
