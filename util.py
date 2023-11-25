@@ -28,6 +28,13 @@ class DistillLoss(ClfDistillLossFunction):
 
         return batch_loss
 
+class BiasProductByTeacher(ClfDistillLossFunction):
+    def forward(self, hidden, logits, bias, teacher_probs, labels):
+        logits = logits.float()  # In case we were in fp16 mode
+        logits = F.log_softmax(logits, 1)
+        teacher_logits = torch.log(teacher_probs)
+        return F.cross_entropy(logits + teacher_logits, labels)
+
 class SmoothedDistillLoss(ClfDistillLossFunction):
     def forward(self, hidden, logits, bias, teacher_probs, labels):
         softmaxf = torch.nn.Softmax(dim=1)

@@ -36,6 +36,21 @@ def compute_accuracy(eval_preds: EvalPrediction):
             axis=1) == eval_preds.label_ids).astype(
             np.float32).mean().item()
     }
+    
+def compute_accuracy_hans(eval_preds: EvalPrediction):
+    # Map 'contradiction' and 'neutral' both to 'non-entailment' (1)
+    mapper = np.array([0, 1, 1])
+    
+    # Apply argmax to get the index of the max prediction
+    preds = np.argmax(eval_preds.predictions, axis=1)
+    
+    # Map the predictions using the mapper
+    mapped_preds = mapper[preds]
+    
+    # Calculate accuracy
+    accuracy = (mapped_preds == eval_preds.label_ids).mean()
+
+    return {'accuracy': accuracy}
 
 
 # This function preprocesses a question answering dataset, tokenizing the question and context text
