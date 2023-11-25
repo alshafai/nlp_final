@@ -36,7 +36,7 @@ class ReweightByTeacherAnnealedTrainer(Trainer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Initialize your custom loss function
-        self.loss_func = ReweightByTeacher()
+        self.loss_func = ReweightByTeacherAnnealed(total_steps=12876)
 
     def compute_loss(self, model, inputs, return_outputs=False):
         # Forward pass

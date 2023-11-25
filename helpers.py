@@ -22,7 +22,8 @@ def prepare_dataset_nli(examples, tokenizer, max_seq_length=None):
     )
 
     tokenized_examples['label'] = examples['label']
-    tokenized_examples['pred_scores'] = examples['pred_scores']
+    if 'pred_scores' in examples:
+        tokenized_examples['pred_scores'] = examples['pred_scores']
     return tokenized_examples
 
 

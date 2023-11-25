@@ -17,9 +17,10 @@ def forward(logits, teacher_probs, labels):
         return (weights * loss).sum() / weights.sum()
 
 if __name__ == "__main__":
-        lo = torch.rand((1,2))
-        te = torch.rand((1,2))
-        te = F.softmax(te)
-        labels = torch.tensor([1])
+        lo = torch.tensor([[-1,5]])
+        print(lo.shape)
+        te = torch.tensor([[.9,.1]])
+        # te = F.softmax(te)
+        labels = torch.tensor([0])
         print(f"logits {lo} \n teacher {te}")
         print(forward(lo,te,labels))
