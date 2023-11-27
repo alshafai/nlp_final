@@ -49,7 +49,12 @@ def main():
     argp.add_argument('--max_eval_samples', type=int, default=None,
                       help='Limit the number of examples to evaluate on.')
 
+    # arg[s].set_lr_scheduler(name="linear", warmup_steps=2000, max_steps= 36,813)
+    # argp.weight_decay = 0.1
+    # argp.warmup_steps = 2000
     training_args, args = argp.parse_args_into_dataclasses()
+    training_args.weight_decay = 0.1
+    training_args.warmup_steps = 2000
 
     # Dataset selection
     # IMPORTANT: this code path allows you to load custom datasets different from the standard SQuAD or SNLI ones.

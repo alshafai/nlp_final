@@ -1,4 +1,4 @@
-from util import ReweightByTeacherAnnealed, ReweightByTeacher
+from util import ReweightByTeacherAnnealed, ReweightByTeacher, BiasProductByTeacher
 import datasets
 import numpy as np
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
@@ -36,7 +36,7 @@ class ReweightByTeacherAnnealedTrainer(Trainer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Initialize your custom loss function
-        self.loss_func = ReweightByTeacherAnnealed(total_steps=12876)
+        self.loss_func = BiasProductByTeacher()
 
     def compute_loss(self, model, inputs, return_outputs=False):
         # Forward pass
@@ -98,6 +98,8 @@ def main():
     training_args, args = argp.parse_args_into_dataclasses()
     args.remove_unused_columns = False
     training_args.remove_unused_columns = False
+    training_args.weight_decay = 0.1
+    training_args.warmup_steps = 2000
     # print(training_args)
     # time.sleep(10)
 
