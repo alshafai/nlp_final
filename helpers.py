@@ -4,7 +4,7 @@ from collections import defaultdict, OrderedDict
 from transformers import Trainer, EvalPrediction
 from transformers.trainer_utils import PredictionOutput
 from typing import Tuple
-from tqdm.auto import tqdm
+import torch.nn.functional as F
 
 QA_MAX_ANSWER_LENGTH = 30
 
@@ -49,6 +49,22 @@ def compute_accuracy_hans(eval_preds: EvalPrediction):
     
     # Calculate accuracy
     accuracy = (mapped_preds == eval_preds.label_ids).mean()
+
+    return {'accuracy': accuracy}
+
+def compute_accuracy_hans_2(eval_preds: EvalPrediction):
+    # Map 'contradiction' and 'neutral' both to 'non-entailment' (1)
+    probs = F.softmax(eval_preds.predictions, dim=1)
+    col1 = probs[:,0]
+    col2 = probs[:,1:].sum(dim= 1, keepdim = True)
+    
+    both = torch.cat([col1, col2], dim=1)
+    
+    # Apply argmax to get the index of the max prediction
+    preds = np.argmax(both, axis=1)
+    
+    # Map the predictions using the mapper
+    accuracy = (preds == eval_preds.label_ids).mean()
 
     return {'accuracy': accuracy}
 

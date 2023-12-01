@@ -1,0 +1,213 @@
+%
+% File acl2019.tex
+%
+%% Based on the style files for ACL 2018, NAACL 2018/19, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{acl2019}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage{multirow}
+
+\usepackage{url}
+
+\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\newcommand\BibTeX{B\textsc{ib}\TeX}
+
+\title{Awesome Paper}
+
+\author{Ali Alshafai \\
+  University of Texas - Austin \\
+  \texttt{alshafai@utexas.edu} \\\\}
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  Abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract abstract 
+\end{abstract}
+
+
+
+\section{Introduction}
+Natural Language Inference (NLI) is a fundamental task in Natural Language Processing (NLP) that involves analyzing pairs of sentences — a premise and a hypothesis — to determine whether the hypothesis entails, contradicts, or is neutral to the premise. While current models achieve high accuracy on benchmark NLI datasets, there is growing evidence to suggest that these successes may be partially attributed to the models' ability to exploit dataset-specific correlations and biases, rather than genuinely understanding the underlying language structures. Many studies have highlighted this concern, proposing various strategies to mitigate the influence of these biases and enhance true model performance. This study seeks to extend this line of inquiry by applying one such method to a newer, more efficient Large Language Model (LLM), with the aim of exploring how this model can learn from data and avoid the pitfalls of dataset biases. We demonstrate that employing a weak learner to debias our primary model leads to enhanced performance.
+
+Many studies have shed light on the tendency of models to utilize correlations and biases. One of the most straightforward and illustrative approaches to this issue is presented by \citet{poliak2018hypothesis}, who modify the input to the model to include only the hypothesis, effectively eliminating the model's ability to discern entailment based on the full context. This altered approach results in an accuracy level that surpasses mere chance, indicating that the model has indeed learned data-specific biases.
+
+In this study, we emphasize our model's reliance on these biases by evaluating its performance on the HANS (Heuristic Analysis for NLI Systems) adversarial dataset, as discussed by \citet{mccoy2019right}. This dataset is specifically crafted to reveal a model's dependence on heuristics. Additionally, we leverage our model's performance on the HANS dataset as a metric to assess the effectiveness of our experimental approaches. In this effort we use ELECTRA-Small \cite{clark2020electra} as our primary model as opposed to the more popular BERT model \cite{devlin2019bert}.
+
+A range of debiasing methods have been explored in the literature, notably those involving the use of an ensemble with a weaker model, or 'weak learner', to reduce bias \cite{mccoy2019right,clark2019dont,utama2020debiasing}. Some of these methods manually model biased features; others automatically detect them. In line with these studies, our approach employs a 'product-of-experts' ensemble, as conceptualized by \citet{hinton2002training}, to serve as our debiasing mechanism. We utilize this weak learner to debias our base model and then assess the performance of the base model on the HANS dataset both prior to and following the debiasing process. Our experiments indicate that the process of debiasing leads to improved performance for smaller models. 
+
+\section{Methodology}
+In our study, we employ two instances of ELECTRA-Small as primary models, each dedicated to a specific Natural Language Inference (NLI) dataset. The first model is trained exclusively on the Stanford Natural Language Inference (SNLI) dataset \cite{bowman2015large}, while the second model focuses on the Multi-Genre Natural Language Inference (MNLI) dataset \cite{williams2018broadcoverage}. This approach allows us to investigate and address dataset-specific correlations and biases with a tailored perspective for each dataset. ELECTRA models are selected for their efficiency and recent advancements, offering a novel lens compared to the traditional BERT models in NLI bias research.
+
+For each primary model, the training involves three epochs on their respective datasets, using the default parameters of HuggingFace's Trainer augmented with a 2000-step warmup and a weight decay factor of 0.1. The evaluation of these models is two-fold: firstly, each model's accuracy is measured on its own validation set to assess dataset-specific performance. Secondly, we cross-evaluate the models by measuring their performance on the validation set of the other dataset (i.e., the SNLI model on the MNLI validation set and vice versa). This cross-evaluation helps in understanding the models' generalization capabilities across different NLI contexts. Additionally, both models are evaluated on the HANS (Heuristic Analysis for NLI Systems) validation set, which is crucial for highlighting the models' dependencies on dataset-specific correlations and biases.
+
+Following this, our methodology involves training two biased models as weak learners for the purpose of debiasing our primary models. These weak learners include another ELECTRA-Small model, trained on a limited number of instances, and a BERT-Tiny model \cite{turc2019wellread}. The performance of these weak learners is assessed using the same approach as our primary models.
+
+In the concluding phase of our research, we employ the predictions from the weak learners to create a 'product-of-experts' framework. This approach is designed to train our base models, which have been separately developed for the SNLI and MNLI datasets, to adeptly identify and sidestep the targeted biases. As a result, we generate four final models: two each corresponding to the base dataset (SNLI and MNLI) and the type of weak learner used. We then conduct a thorough evaluation of these debiased models, measuring their accuracy against the SNLI, MNLI, and HANS datasets. This step is vital to assess the extent of performance improvement post-debiasing, particularly focusing on bias mitigation and overall model robustness.
+
+\subsection{Datasets}
+In our study, we utilized three distinct datasets: the Stanford Natural Language Inference (\textbf{SNLI}) dataset, the Multi-Genre Natural Language Inference (\textbf{MNLI}) dataset, and the Heuristic Analysis for Natural Language Inference (\textbf{HANS}) dataset. Both SNLI and MNLI consist of human-written English sentence pairs, each labeled as entailment, contradiction, or neutral. However, the MNLI dataset offers an enhancement over SNLI by incorporating a more diverse range of genres.
+
+The HANS dataset, on the other hand, serves as a specialized evaluation tool designed to assess a model's vulnerability to adopting dataset heuristics. It focuses on three primary heuristic types: lexical overlap, subsequence, and constituent heuristics, each further divided into 10 specific subcases. In terms of dataset size, SNLI encompasses approximately 570K sentence pairs, MNLI contains around 433K pairs, and HANS comprises about 60K pairs. This diverse dataset selection enables a comprehensive examination of model performance and bias susceptibility.
+
+
+\subsection{Models}
+We have employed two distinct models: ELECTRA-Small, with 14 million parameters, serving both as our primary model and as a weak learner, and BERT-Tiny, which has 4 milli/on parameters, exclusively used as a weak learner. The ELECTRA model represents a more recent and efficient advancement over the well-known BERT model. Uniquely, ELECTRA is trained using a discriminator that distinguishes between genuine and artificially generated tokens within an input sequence, contrasting with BERT's approach of masking and predicting specific words. This training methodology has been demonstrated to yield more efficient and superior results \cite{clark2019dont}.
+
+We specifically chose ELECTRA-Small to explore the capabilities of a smaller, less resource-intensive model. Meanwhile, BERT-Tiny, due to its limited capacity, is deployed to act as a weak learner, focusing on learning only superficial correlations. This strategic utilization of both models allows us to comprehensively investigate the nuances of dataset-specific biases and correlations in NLI tasks.
+
+\subsection{Experimental Setup}
+We conducted four primary experiments, each centered on one of two datasets (SNLI and MNLI). For each dataset, we carried out two separate experiments: one using BERT-Tiny and the other using a data-deprived ELECTRA-Small as the weak learner. Each experiment involved training three distinct models: the base model, the weak learner, and the final debiased model. Consistency in training parameters was maintained across all models, with a batch size of 32, training duration of 3.0 epochs, 2000 warm-up steps, a weight decay of 0.1, and utilizing the default initial learning rate (5e-5) and decay schedule (linear to zero) as specified in Huggingface's Trainer module. For the loss function, binary cross entropy was employed for all models except the debiased model, which used a specialized loss function appropriate for the product-of-experts framework.
+
+The experimental process was divided into three phases. The first phase involved training the base model and recording its evaluation metrics. The second phase focused on the weak learner, training it and also capturing its evaluation metrics. The final phase entailed retraining the base model with the weak learner's predictions to create the debiased model.
+
+For the weak learners, we employed two distinct approaches. The first utilized BERT-Tiny, a model with limited capacity, which was trained on the entire training dataset. The second approach involved using an ELECTRA-Small model, but significantly restricting its training to only 10K pairs, thereby deliberately limiting its learning capacity.
+
+To construct the debiased model, we adopted a specialized loss function based on the product-of-experts (PoE) framework, as outlined by \citet{hinton2002training}. The loss function is defined as follows:
+\begin{align*}
+\mathcal{L}_{poe} &= -y^{(i)}  \cdot \log \textnormal{softmax}(\log p_d + \log p_b)
+\end{align*}
+In this equation, $p_b$ represents the probabilities derived from the biased model, while $p_d$ denotes the probabilities from the model that is being targeted for debiasing. This formulation enables the effective integration of insights from both the biased and debiased models, guiding the latter towards reduced bias reliance while maintaining predictive accuracy.
+
+
+%=======================================================================================================================
+\begin{table*}[th]
+\begin{center}
+\begin{tabular}{lcccccc}
+\hline \textbf{Model} & \textbf{Debiasing Model} & \textbf{Training Dataset} & \textbf{MNLI} & \textbf{SNLI} & \textbf{HANS} & $\Delta$ \\ \hline
+\multirow{6}{*}{ELECTRA-Small} & - & SNLI & 71.5 & 89.7 & 55.2 &  \\
+& 10K ELECTRA-Small &SNLI & 69.9 & 89.2 & 56.0 & 0.8\\ 
+& BERT-Tiny &SNLI & 60.3 & 76.8 & 61.6 & 6.4 \\ \cline{2-7}
+& - &MNLI & 82.7 & 77.3 & 54.4 & \\ 
+& 10K ELECTRA-Small &MNLI & 80.2 & 76.2 & 57.4 & 3.0 \\  
+& BERT-Tiny &MNLI & 75.2 & 70.2 & 61.1 & 6.7\\ 
+\hline 
+\multirow{2}{*}{BERT-Tiny} &-& SNLI & 57.1 & 81.9 & 50.0 \\ \cline{2-7}
+&-&MNLI & 68.8 & 59.1 & 50.1 \\ \hline 
+\multirow{2}{*}{10K ELECTRA-Small} &-& SNLI & 53.3 & 78.1 & 49.9 \\ \cline{2-7}
+&-&MNLI & 64.5 & 54.6 & 49.9 \\ 
+\hline 
+\multirow{3}{*}{BERT-Base ($\dagger$)}&-&MNLI & 84.5 & - & 61.5 \\ 
+& 2K BERT-Base ($\dagger$) &MNLI & 80.7 & - & 68.5 &7.0 \\
+& BERT-Tiny ($\ddagger$) &MNLI & 81.4 & - & 68.8 & 7.3 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Accuracy Performance of All Models on SNLI and MNLI Datasets. The $\Delta$ column reflects the performance improvement on the HANS validation set attributable to debiasing. Performance metrics for BERT-Base ($\dagger$) are cited from \citet{utama2020debiasing} and BERT-Tiny ($\ddagger$) are from \citet{sanh2020learning}. The numbers (2K and 10K) denote the reduced sizes of the training datasets for the respective models.}
+\label{table: main-results}
+\end{table*}
+%=======================================================================================================================
+
+\section{Results}
+Table \ref{table: main-results} summarizes the accuracy performance of all models on SNLI and MNLI datasets. Performance improvements on HANS validation set of 0.8 and 3.0 can be seen for the debiased models utilizing a 10K ELECTRA-Small weak learner trained on SNLI and MNLI respectively. A larger improvement is seen, 6.4 and 6.7 on SNLI and MNLI respectively, for the debiased models utilizing a BERT-Tiny weak learner. Similar improvement values has been reported by \citet{utama2020debiasing} and \citet{sanh2020learning}. The accuracy values of the ELECTRA-Small models, however, fall below those of the larger BERT-Base models. 
+
+Models trained on the MNLI and SNLI datasets exhibit comparable performance levels. However, those trained on MNLI demonstrate a noticeable advantage in handling out-of-distribution data during evaluations.
+
+Table \ref{table: detailed-HANS-results} presents the detailed accuracy performance per overlap, subsequence, and constituent heuristics further divided by entailment and non-entailment ($\neg$). All the models perform well on the entailment for all heuristic types. It's the non-entailment pairs that pose a challenge to our models. BERT-Base and the debiased BERT-Base overall outperform our models. Our debiased models show different debiasing effect across the types. The weak learners performance is reported for diagnosis. 
+%=======================================================================================================================
+\begin{table*}[th]
+\begin{center}
+\begin{tabular}{lccccccc}
+\hline 
+& & \multicolumn{6}{c}{HANS}
+\\
+\textbf{Heuristic Type} & \textbf{Training Dataset} & \textbf{Lex}& $\neg$ \textbf{Lex} & \textbf{Sub} & $\neg$ \textbf{Sub} &\textbf{Con} & $\neg$ \textbf{Con} \\ \hline
+ELECTRA-Small &  SNLI & 97.1 & 28.8 & 99.4 & 1.8 & 98.0 & 5.9  \\
+BERT-Tiny &  SNLI & 100.0 & 0.0 & 100.0 & 0.0 & 100.0 & 0.0  \\
+ELECTRA-Small$_{BERT-Tiny}$ &  SNLI & 78.8 & 69.0 & 93.9 & 26.0 & 93.9 & 7.8  \\
+ELECTRA-Small &  MNLI & 90.1 & 19.1 & 98.9 & 7.2 & 97.5 & 13.7  \\
+BERT-Tiny &  MNLI & 100.0 & 0.0 & 100.0 & 0.0 & 99.4 & 1.1  \\
+ELECTRA-Small$_{BERT-Tiny}$ &  MNLI & 52.7 & 61.1 & 44.9 & 80.8 & 50.9 & 76.5  \\
+BERT-Base ($\dagger$) &  MNLI & 96.0 & 51.8 & 99.5 & 7.4 & 99.4 & 14.5  \\
+BERT-Base$_{2K BERT-Base}$ ($\dagger$) &  MNLI & 77.0 & 73.6 & 92.1 & 42.2 & 89.3 & 49.8 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed Accuracy Performance of Best Performing Models on SNLI and MNLI Datasets and Their Equivalent Baseline. Performance metrics for BERT-Base ($\dagger$) are cited from \citet{utama2020debiasing}.}
+\label{table: detailed-HANS-results}
+\end{table*}
+%=======================================================================================================================
+
+
+%=======================================================================================================================
+\begin{table*}[th]
+\begin{center}
+\begin{tabular}{llccc}
+\hline 
+& & Debiased ELECTRA-Small & ELECTRA-Small 
+\\
+& & SNLI & MNLI 
+\\
+\textbf{Heuristic Type} & \textbf{Subcase} & \textbf{\# correct}& \textbf{\# correct} & $|\Delta|$ \\ \hline
+constituent & Embedded under preposition & 73 & 996 & 923 \\constituent & Adverbs & 0 & 879 & 879 \\constituent & Embedded unser verb & 50 & 753 & 703 \\constituent & Disjunction & 269 & 925 & 656 \\constituent & Outside embedded clause & 0 & 274 & 274 \\lexical overlap & Subject-object swap & 924 & 365 & 559 \\lexical overlap & Sentences with PPs & 745 & 888 & 143 \\lexical overlap & Sentences with relative clauses & 767 & 791 & 24 \\lexical overlap & Conjunctions & 988 & 983 & 5 \\lexical overlap & Passives & 28 & 30 & 2 \\subsequence & Past participle & 134 & 840 & 706 \\subsequence & NP/Z & 275 & 929 & 654 \\subsequence & Relative clause on subject & 257 & 839 & 582 \\subsequence & NP/S & 145 & 696 & 551 \\subsequence & PP on subject & 487 & 736 & 249 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed Non-Entailment Performance on Each Subscore for Each Heuristic Type.}
+\label{table: detailed-HANS-types}
+\end{table*}
+%=======================================================================================================================
+
+\section{Discussion}
+\subsection{Base Model Performance}
+\subsection{Weak Learners Performance}
+\subsection{Product-of-Experts Performance}
+\subsection{Comparing the Models}
+
+\section{Conclusion}
+
+
+
+\bibliography{acl2019}
+\bibliographystyle{acl_natbib}
+
+\appendix
+
+\end{document}
+
+%%=======================================================================================================================
+%\begin{table*}[th]
+%\begin{center}
+%\begin{tabular}{lccccc}
+%\hline \textbf{Model} & \textbf{Debiasing Model} & \textbf{Training Dataset} & \textbf{MNLI} & \textbf{SNLI} & \textbf{HANS}\\ \hline
+%\multirow{6}{*}{ELECTRA-Small} & - & SNLI & 71.5 & 89.7 & 55.2 \\
+%& - &MNLI & 82.7 & 77.3 & 53.5 \\ 
+%& BERT-Tiny &SNLI & 60.3 & 76.8 & 61.6 \\ 
+%& BERT-Tiny &MNLI & 75.2 & 70.2 & 61.3 \\
+%& 10K ELECTRA-Small &SNLI & 69.9 & 89.2 & 56.0 \\ 
+%& 10K ELECTRA-Small &MNLI & 80.2 & 76.2 & 57.4 \\ 
+%\hline 
+%\multirow{2}{*}{BERT-Tiny} &-& SNLI & 57.1 & 81.9 & 50.0 \\
+%&-&MNLI & 68.8 & 59.1 & 50.1 \\ \hline 
+%\multirow{2}{*}{10K ELECTRA-Small} &-& SNLI & 53.3 & 78.1 & 49.9 \\
+%&-&MNLI & 64.5 & 54.6 & 49.9 \\ 
+%\hline 
+%\multirow{2}{*}{BERT-Base}&-&MNLI & 84.5 & - & 61.5 \\ 
+%& LD BERT-Base &MNLI & 80.7 & - & 68.5 \\
+%\hline
+%\end{tabular}
+%\end{center}
+%\caption{ Font guide. }
+%\label{table: main-results}
+%\end{table*}
+%%=======================================================================================================================
