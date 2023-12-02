@@ -95,17 +95,17 @@ In this equation, $p_b$ represents the probabilities derived from the biased mod
 \begin{center}
 \begin{tabular}{lcccccc}
 \hline \textbf{Model} & \textbf{Debiasing Model} & \textbf{Training Dataset} & \textbf{MNLI} & \textbf{SNLI} & \textbf{HANS} & $\Delta$ \\ \hline
-\multirow{6}{*}{ELECTRA-Small} & - & SNLI & 71.5 & 89.7 & 55.2 &  \\
-& 10K ELECTRA-Small &SNLI & 69.9 & 89.2 & 56.0 & 0.8\\ 
-& BERT-Tiny &SNLI & 60.3 & 76.8 & 61.6 & 6.4 \\ \cline{2-7}
-& - &MNLI & 82.7 & 77.3 & 54.4 & \\ 
-& 10K ELECTRA-Small &MNLI & 80.2 & 76.2 & 57.4 & 3.0 \\  
-& BERT-Tiny &MNLI & 75.2 & 70.2 & 61.1 & 6.7\\ 
+\multirow{6}{*}{ELECTRA-Small} & - & SNLI & 71.5 & 89.7 & 55.8 &  \\
+& 10K ELECTRA-Small &SNLI & 69.9 & 89.2 & *56.0 & *0.8\\ 
+& BERT-Tiny &SNLI & 60.3 & 76.8 & 64.3 & 8.5 \\ \cline{2-7}
+& - &MNLI & 82.7 & 77.3 & 54.9 & \\ 
+& 10K ELECTRA-Small &MNLI & 80.2 & 76.2 & *57.4 & *3.0 \\  
+& BERT-Tiny &MNLI & 75.2 & 70.2 & 59.0 & 4.1\\ 
 \hline 
 \multirow{2}{*}{BERT-Tiny} &-& SNLI & 57.1 & 81.9 & 50.0 \\ \cline{2-7}
 &-&MNLI & 68.8 & 59.1 & 50.1 \\ \hline 
-\multirow{2}{*}{10K ELECTRA-Small} &-& SNLI & 53.3 & 78.1 & 49.9 \\ \cline{2-7}
-&-&MNLI & 64.5 & 54.6 & 49.9 \\ 
+\multirow{2}{*}{10K ELECTRA-Small} &-& SNLI & 53.3 & 78.1 & *49.9 \\ \cline{2-7}
+&-&MNLI & 65.4 & 56.6 & 49.0 \\ 
 \hline 
 \multirow{3}{*}{BERT-Base ($\dagger$)}&-&MNLI & 84.5 & - & 61.5 \\ 
 & 2K BERT-Base ($\dagger$) &MNLI & 80.7 & - & 68.5 &7.0 \\

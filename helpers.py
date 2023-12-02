@@ -53,18 +53,18 @@ def compute_accuracy_hans(eval_preds: EvalPrediction):
     return {'accuracy': accuracy}
 
 def compute_accuracy_hans_2(eval_preds: EvalPrediction):
-    # Map 'contradiction' and 'neutral' both to 'non-entailment' (1)
-    probs = F.softmax(eval_preds.predictions, dim=1)
-    col1 = probs[:,0]
-    col2 = probs[:,1:].sum(dim= 1, keepdim = True)
-    
-    both = torch.cat([col1, col2], dim=1)
-    
-    # Apply argmax to get the index of the max prediction
-    preds = np.argmax(both, axis=1)
-    
-    # Map the predictions using the mapper
-    accuracy = (preds == eval_preds.label_ids).mean()
+    eval_preds_tensor = torch.tensor(eval_preds.predictions)
+    probs = F.softmax(eval_preds_tensor, dim=1)
+    col1 = probs[:, 0]
+    col2 = probs[:, 1:].sum(dim=1, keepdim=True)
+    both = torch.cat([col1.unsqueeze(1), col2], dim=1)
+    preds = torch.argmax(both, axis=1)
+
+    # Ensure eval_preds.label_ids is a tensor
+    labels = torch.tensor(eval_preds.label_ids)
+
+    # Calculate accuracy
+    accuracy = (preds == labels).float().mean().item()  # .item() to convert to a Python scalar
 
     return {'accuracy': accuracy}
 
